@@ -4,6 +4,9 @@ import bcryptjs from "bcryptjs";
 import verifyEmailTemplate from "../utils/verifuEmailTemplate.js";
 import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generateRefreshToken from "../utils/generateRefreshToken.js";
+import uploadImageCloudinary from "../utils/uploadImageCloudinary.js";
+import generateOTP from "../utils/generatedOtp.js";
+import forgotPasswordTemplate from "../utils/forgotpasswordTemplate.js";
 
 export async function registerUserController(req, res) {
   try {
@@ -177,8 +180,7 @@ export async function loginController(req, res) {
 //lodout controller
 export async function logoutController(req, res) {
   try {
-    const userId = req.userId
-
+    const userId = req.userId;
 
     const cookieOption = {
       httpOnly: true,
@@ -189,9 +191,8 @@ export async function logoutController(req, res) {
     res.clearCookie("refreshToken", cookieOption);
 
     const removeRefreshToken = await UserModel.findByIdAndUpdate(userId, {
-      refresh_token : ""
-    })
-
+      refresh_token: "",
+    });
 
     return res.json({
       message: "Logout success",
@@ -206,3 +207,137 @@ export async function logoutController(req, res) {
     });
   }
 }
+
+//upload user avatar
+export async function uploadAvatarController(req, res) {
+  try {
+    const userId = req.userId; //auth middleware
+    const image = req.file; //multer middleware
+
+    const upload = await uploadImageCloudinary(image);
+
+    const updateUser = await UserModel.findByIdAndUpdate(userId, {
+      avatar: upload.url,
+    });
+    return res.json({
+      message: "Avatar uploaded successfully",
+      data: {
+        _id: userId,
+        avatar: upload.url,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//update user detail
+export async function updateUserController(req, res) {
+  try {
+    const userId = req.userId; //auth middleware
+    const { name, email, password, mobile } = req.body;
+
+    // Validation : Vérifiez si au moins un champ est fourni
+    if (!name && !email && !password && !mobile) {
+      return res.status(400).json({
+        message: "No fields provided for update",
+        error: true,
+        success: false,
+      });
+    }
+
+    //hacher le mot de passe avant de le passer
+    let hashedPassword = "";
+    if (password) {
+      const salt = await bcryptjs.genSalt(10);
+      hashedPassword = await bcryptjs.hash(password, salt);
+    }
+
+    // Mise à jour conditionnelle des champs
+    const updateUser = await UserModel.updateOne(
+      { _id: userId },
+      {
+        ...(name && { name: name }), //si le nom n'xiste pas, d'ajouer le nom saisie dans le body
+        ...(email && { email: email }),
+        ...(password && { password: hashedPassword }),
+        ...(mobile && { mobile: mobile }),
+      }
+    );
+
+    // Si l'utilisateur n'est pas trouvé
+    if (!updateUser) {
+      return res.status(404).json({
+        message: "User not found",
+        error: true,
+        success: false,
+      });
+    }
+
+    // Si l'utilisateur est trouvé et mis à jour avec succès
+    return res.json({
+      message: "User updated successfully",
+      error: false,
+      success: true,
+      data: updateUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//forgot password
+export const forgotPasswordController = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await UserModel.findOne({ email });
+
+    //verifier si l'user exisut
+    if (!user) {
+      return res.status(404).json({
+        message: "email not avalable",
+        error: true,
+        success: false,
+        });
+    }
+
+    const OTP = generateOTP()
+    const expireTime = new Date() + 60 * 60 *1000 //h
+
+    //uptate
+    const update = await UserModel.findByIdAndUpdate(user._id,{
+      forgot_password_expiry : new Date(expireTime).toISOString(),
+      forgot_password_otp : OTP
+    })
+
+    await sendEmail({
+      sendTo : email,
+      subject : "Reset Password",
+      html : forgotPasswordTemplate({
+        name : user.name,
+        otp : OTP
+      })
+    })
+
+    return res.json({
+      message: "OTP sent to your email",
+      error: false,
+      success: true,
+    })
+
+
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
