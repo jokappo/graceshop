@@ -299,35 +299,147 @@ export const forgotPasswordController = async (req, res) => {
     const { email } = req.body;
     const user = await UserModel.findOne({ email });
 
-    //verifier si l'user exisut
+    //verifier si l'user exist
     if (!user) {
       return res.status(404).json({
         message: "email not avalable",
         error: true,
         success: false,
-        });
+      });
     }
 
-    const OTP = generateOTP()
-    const expireTime = new Date() + 60 * 60 *1000 //h
+    const OTP = generateOTP();
+    const expireTime = new Date() + 60 * 60 * 1000; //h
 
     //uptate
-    const update = await UserModel.findByIdAndUpdate(user._id,{
-      forgot_password_expiry : new Date(expireTime).toISOString(),
-      forgot_password_otp : OTP
-    })
+    const update = await UserModel.findByIdAndUpdate(user._id, {
+      forgot_password_expiry: new Date(expireTime).toISOString(),
+      forgot_password_otp: OTP,
+    });
 
     await sendEmail({
-      sendTo : email,
-      subject : "Reset Password",
-      html : forgotPasswordTemplate({
-        name : user.name,
-        otp : OTP
-      })
-    })
+      sendTo: email,
+      subject: "Reset Password",
+      html: forgotPasswordTemplate({
+        name: user.name,
+        otp: OTP,
+      }),
+    });
 
     return res.json({
       message: "OTP sent to your email",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
+
+//verify forgot verify otp
+export const verifyForgotPasswordOtpController = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    //verifier si on a passé l'email le otp
+    if (!email || !otp) {
+      return res.status(400).json({
+        message: "provide email and otp",
+        error: true,
+        success: false,
+      });
+    }
+
+    const user = await UserModel.findOne({ email });
+    //verifier si l'email est dans la base de donnée
+    if (!user) {
+      return res.status(404).json({
+        message: "email not avalable",
+        error: true,
+        success: false,
+      });
+    }
+
+    const currentTime = new Date().toISOString()
+
+    //veifier si lotp a expiré
+    if (user.forgot_password_expiry < currentTime) {
+      return res.status(400).json({
+        message: "OTP has expired",
+        error: true,
+        success: false,
+      });
+    }
+
+    //verifuer si lotp est valide
+    if (otp !== user.forgot_password_otp) {
+      return res.status(400).json({
+        message: "Invalid OTP",
+        error: true,
+        success: false,
+      });
+    }
+
+    return res.json({
+      message: "verify otp successfully",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
+
+//reset password
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword, confirmNewPassword } = req.body;
+
+    //verifier si tout les champs ont ete rempli
+    if (!email || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({
+        message: "Please fill all fields",
+        error: true,
+        success: false,
+      });
+    }
+
+    //verifier si luser existe
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        error: true,
+        success: false,
+      });
+    }
+
+    //verifier la confirmation du mot de passe
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        message: "Passwords do not match",
+        error: true,
+        success: false,
+      });
+    }
+
+    const salt = await bcryptjs.genSalt(10)
+    const hashedPassword = await bcryptjs.hash(newPassword,salt)
+
+    const update = await UserModel.findOneAndUpdate(user, {
+      password : hashedPassword
+    })
+
+    return res.json({
+      message: "Password reset successfully",
       error: false,
       success: true,
     })
