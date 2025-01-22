@@ -491,12 +491,12 @@ export const refreshTokenController = async (req, res) => {
 
     return res.json({
       message: "refresh token success",
-      error : false,
+      error: false,
       success: true,
-      date : {
-        accessToken : newAccessToken}
-    })
-
+      date: {
+        accessToken: newAccessToken,
+      },
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
