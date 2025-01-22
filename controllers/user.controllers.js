@@ -8,6 +8,7 @@ import uploadImageCloudinary from "../utils/uploadImageCloudinary.js";
 import generateOTP from "../utils/generatedOtp.js";
 import forgotPasswordTemplate from "../utils/forgotpasswordTemplate.js";
 import jwt from "jsonwebtoken";
+import { now } from "mongoose";
 
 export async function registerUserController(req, res) {
   try {
@@ -151,6 +152,11 @@ export async function loginController(req, res) {
 
     const accessToken = await generatedAccessToken(user._id);
     const refreshToken = await generateRefreshToken(user._id);
+
+    //metre a jour la derniere date de login
+    const updateUser = await UserModel.findByIdAndUpdate(user._id,{
+      last_login_date : new Date()
+    })
 
     const cookieOption = {
       httpOnly: true,
@@ -505,3 +511,35 @@ export const refreshTokenController = async (req, res) => {
     });
   }
 };
+
+//get login user detail
+export const userDetail = async (req, res) => {
+  try {
+    const userId = req.userId
+    
+    //chercher l'user avec l'id et enlever les choses dans le select
+    const user = await UserModel.findById(userId).select(' -password -refresh_token ')
+    //si on ne trouve pas l'user
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        error: true,
+        success: false,
+        });
+    }
+
+    //si on trouve l'user
+    return res.json({
+      message: "user detail success",
+      data : user,
+      error: false,
+      success: true,
+    })
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
