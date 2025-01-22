@@ -391,6 +391,12 @@ export const verifyForgotPasswordOtpController = async (req, res) => {
       });
     }
 
+    //update after verification 
+    const updateUser = await UserModel.findByIdAndUpdate(user._id, {
+      forgot_password_otp : "",
+      forgot_password_expiry : ""
+    })
+
     return res.json({
       message: "verify otp successfully",
       error: false,
@@ -516,7 +522,7 @@ export const refreshTokenController = async (req, res) => {
 export const userDetail = async (req, res) => {
   try {
     const userId = req.userId
-    
+
     //chercher l'user avec l'id et enlever les choses dans le select
     const user = await UserModel.findById(userId).select(' -password -refresh_token ')
     //si on ne trouve pas l'user
