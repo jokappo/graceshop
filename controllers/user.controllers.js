@@ -199,6 +199,8 @@ export async function logoutController(req, res) {
 
     const removeRefreshToken = await UserModel.findByIdAndUpdate(userId, {
       refresh_token: "",
+      access_token: ""
+
     });
 
     return res.json({
