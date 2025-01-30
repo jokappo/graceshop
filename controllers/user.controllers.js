@@ -290,7 +290,7 @@ export async function updateUserController(req, res) {
 
     // Si l'utilisateur est trouvé et mis à jour avec succès
     return res.json({
-      message: "User updated successfully",
+      message: "Updated successfully",
       error: false,
       success: true,
       data: updateUser,
