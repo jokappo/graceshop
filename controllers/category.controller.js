@@ -1,5 +1,6 @@
 import categoryModel from "../models/category.model.js";
 
+//ajouter une cathegory
 export const AddCategoryController = async (req, res) => {
   try {
     const { name, image } = req.body;
@@ -45,5 +46,24 @@ export const AddCategoryController = async (req, res) => {
     });
   }
 };
+
+//afficher les categories cree
+export const getCategoryController = async (req, res) => {
+  try {
+    const data = await categoryModel.find()
+    return res.json({
+      message: "Category fetched successfully",
+      data: data,
+      error: false,
+      success: true,
+    })
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false
+    })
+  }
+}
 
 
