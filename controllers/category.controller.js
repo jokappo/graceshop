@@ -16,28 +16,26 @@ export const AddCategoryController = async (req, res) => {
 
     //ajouter la cat
     const addCayegory = new categoryModel({
-        name,
-        image,
-    })
+      name,
+      image,
+    });
 
-    const saveCategory = await addCayegory.save()
+    const saveCategory = await addCayegory.save();
 
     if (!saveCategory) {
-        return res.status(500).json({
-            message: "Not Created",
-            error: true,
-            success: false,
-        })
+      return res.status(500).json({
+        message: "Not Created",
+        error: true,
+        success: false,
+      });
     }
 
     return res.json({
-        message: "Category added successfully",
-        data: saveCategory,
-        error: false,
-        success: true,
-    })
-
-
+      message: "Category added successfully",
+      data: saveCategory,
+      error: false,
+      success: true,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
@@ -50,20 +48,65 @@ export const AddCategoryController = async (req, res) => {
 //afficher les categories cree
 export const getCategoryController = async (req, res) => {
   try {
-    const data = await categoryModel.find()
+    const data = await categoryModel.find();
     return res.json({
       message: "Category fetched successfully",
       data: data,
       error: false,
       success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
+
+//update category
+export const updateCategoryController = async (req, res) => {
+  try {
+    const { categoryId, name, image } = req.body;
+
+    //verifier si la category existe
+    const category = await categoryModel.findById(categoryId)
+    if (!category) {
+      return res.status(404).json({
+        message: "Category not found",
+        error: true,
+        success: false,
+      });
+    }
+
+    const update = await categoryModel.updateOne(
+      {
+        _id: categoryId,
+      },
+      {
+        name,
+        image,
+      }
+    );
+    if (update.modifiedCount === 0) {
+      return res.status(400).json({
+        message: "Category not updated",
+        error: true,
+        success: false,
+      })
+    }
+
+    return res.json({
+      message: "Category updated successfully",
+      error: false,
+      success: true,
+      data : update
     })
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
       error: true,
-      success: false
-    })
+      success: false,
+    });
   }
-}
-
-
+};
