@@ -1,4 +1,6 @@
 import categoryModel from "../models/category.model.js";
+import SubCategoryModel from "../models/subCategory.model.js";
+import productModel from "../models/product.model.js";
 
 //ajouter une cathegory
 export const AddCategoryController = async (req, res) => {
@@ -70,7 +72,7 @@ export const updateCategoryController = async (req, res) => {
     const { categoryId, name, image } = req.body;
 
     //verifier si la category existe
-    const category = await categoryModel.findById(categoryId)
+    const category = await categoryModel.findById(categoryId);
     if (!category) {
       return res.status(404).json({
         message: "Category not found",
@@ -93,15 +95,74 @@ export const updateCategoryController = async (req, res) => {
         message: "Category not updated",
         error: true,
         success: false,
-      })
+      });
     }
 
     return res.json({
       message: "Category updated successfully",
       error: false,
       success: true,
-      data : update
-    })
+      data: update,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
+
+//delete category
+export const deleteCategoryController = async (req, res) => {
+  try {
+    const { _id } = req.body;
+    const category = await categoryModel.findById(_id);
+    if (!category) {
+      return res.status(404).json({
+        message: "Category not found",
+        error: true,
+        success: false,
+      });
+    }
+
+    //check if category was used in another model
+    const checkSubcategory = await SubCategoryModel.find({
+      category: {
+        $in: [_id],
+      },
+    }).countDocuments();
+
+    const checkProduct = await productModel
+      .find({
+        categoryId: {
+          $in: [_id],
+        },
+      })
+      .countDocuments();
+
+    if (checkSubcategory > 0 || checkProduct > 0) {
+      return res.status(400).json({
+        message: "Category is used in another model",
+        error: true,
+        success: false,
+      });
+    }
+
+    const deleteCategory = await categoryModel.deleteOne({ _id: _id });
+    if (deleteCategory.deletedCount === 0) {
+      return res.status(400).json({
+        message: "Category not deleted",
+        error: true,
+        success: false,
+      });
+    }
+
+    return res.json({
+      message: "Category deleted successfully",
+      error: false,
+      success: true,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
