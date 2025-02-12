@@ -50,7 +50,7 @@ export const AddCategoryController = async (req, res) => {
 //afficher les categories cree
 export const getCategoryController = async (req, res) => {
   try {
-    const data = await categoryModel.find();
+    const data = await categoryModel.find().sort({ createdAt: -1});
     return res.json({
       message: "Category fetched successfully",
       data: data,
