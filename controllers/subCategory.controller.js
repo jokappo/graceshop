@@ -105,7 +105,43 @@ export const UpdateSubCategoryController = async (req, res) => {
       error: false,
       success: true,
     });
-    
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      success: false,
+      error: true,
+    });
+  }
+};
+
+//delete sub category
+export const DeleteSubCategoryController = async (req, res) => {
+  try {
+    const { _id } = req.body;
+    //verifier si la sub category existe
+    const subCategory = await SubCategoryModel.findById(_id);
+    if (!subCategory) {
+      return res.status(404).json({
+        message: "Sub Category not found",
+        error: true,
+        success: false,
+      });
+    }
+    //supprimer la sub category
+    const deleteSubCategory = await SubCategoryModel.deleteOne({ _id });
+    if (deleteSubCategory.deletedCount === 0) {
+      return res.status(400).json({
+        message: "Sub Category not deleted",
+        error: true,
+        success: false,
+      });
+    }
+    return res.json({
+      message: "Sub Category deleted",
+      data: deleteSubCategory,
+      error: false,
+      success: true,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
