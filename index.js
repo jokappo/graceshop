@@ -9,6 +9,7 @@ import userRouter from './route/user.route.js';
 import categoryRouter from './route/category.route.js';
 import uploadRouter from './route/upload.route.js';
 import SubCategoryRouter from './route/subCategory.route.js';
+import productRouter from './route/product.route.js';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/user/',userRouter)
 app.use('/api/category/',categoryRouter)
 app.use('/api/subCategory/',SubCategoryRouter)
 app.use('/api/file',uploadRouter)
+app.use('/api/product/', productRouter)
 
 connectDB();
 
