@@ -117,25 +117,76 @@ export const GetProductController = async (req, res) => {
 export const GetProductByCategoryController = async (req, res) => {
   try {
     const { id } = req.body;
-    if ( !id ) {
+    if (!id) {
       return res.status(400).json({
         message: "Category id is required",
         success: false,
         error: true,
-      })
+      });
     }
 
     const data = await productModel
-      .find({ category: { $in : id } })
+      .find({ category: { $in: id } })
       .sort({ createdAt: -1 })
       .limit(15);
 
-      return res.json({
-        message: "Category product list",
-        error: false,
-        success: true,
-        data: data,
-      })
+    return res.json({
+      message: "Category product list",
+      error: false,
+      success: true,
+      data: data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      success: false,
+      error: true,
+    });
+  }
+};
+
+//get product by category and subcategory
+export const GetProductByCategoryAndSubcategoryController = async (
+  req,
+  res
+) => {
+  try {
+    const { categoryID, subcategoryID, page, limit } = req.body;
+    if (!categoryID || !subcategoryID) {
+      return res.status(400).json({
+        message: "Category and subcategory id is required",
+        success: false,
+        error: true,
+      });
+    }
+    if (!page) {
+      page = 1;
+    }
+    if (!limit) {
+      limit = 10;
+    }
+
+    const query = {
+      category: { $in: categoryID },
+      subcategory: { $in: subcategoryID },
+    };
+
+    skip = (page - 1) * limit;
+
+    const { data, dataCount } = await Promise([
+      productModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      productModel.countDocuments(query),
+    ]);
+
+    return res.json({
+      message: "Product list by category and subcategory",
+      success: true,
+      error: false,
+      data: data,
+      limit: limit,
+      page: page,
+      totalCount: dataCount,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
