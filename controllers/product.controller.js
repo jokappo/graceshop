@@ -168,7 +168,7 @@ export const GetProductByCategoryAndSubcategoryController = async (
 
     const query = {
       category: { $in: categoryID },
-      subcategory: { $in: subcategoryID },
+      subCategory: { $in: subcategoryID },
     };
 
     const skip = (page - 1) * limit;
