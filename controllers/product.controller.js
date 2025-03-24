@@ -171,9 +171,9 @@ export const GetProductByCategoryAndSubcategoryController = async (
       subcategory: { $in: subcategoryID },
     };
 
-    skip = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
-    const { data, dataCount } = await Promise([
+    const { data, dataCount } = await Promise.all([
       productModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
       productModel.countDocuments(query),
     ]);
