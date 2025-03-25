@@ -146,13 +146,10 @@ export const GetProductByCategoryController = async (req, res) => {
 };
 
 //get product by category and subcategory
-export const GetProductByCategoryAndSubcategoryController = async (
-  req,
-  res
-) => {
+export const GetProductByCategoryAndSubcategoryController = async (req,res) => {
   try {
-    const { categoryID, subcategoryID, page, limit } = req.body;
-    if (!categoryID || !subcategoryID) {
+    const { categoryId, subcategoryId, page, limit } = req.body;
+    if (!categoryId || !subcategoryId) {
       return res.status(400).json({
         message: "Category and subcategory id is required",
         success: false,
@@ -167,22 +164,23 @@ export const GetProductByCategoryAndSubcategoryController = async (
     }
 
     const query = {
-      category: { $in: categoryID },
-      subCategory: { $in: subcategoryID },
+      category: { $in : categoryId },
+      subCategory: { $in : subcategoryId },
     };
 
     const skip = (page - 1) * limit;
 
-    const { data, dataCount } = await Promise.all([
+    const [ data, dataCount ]  = await Promise.all([
       productModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
       productModel.countDocuments(query),
     ]);
 
     return res.json({
       message: "Product list by category and subcategory",
+      query,
       success: true,
       error: false,
-      data: data,
+      data,
       limit: limit,
       page: page,
       totalCount: dataCount,
