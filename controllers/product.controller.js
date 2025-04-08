@@ -146,7 +146,10 @@ export const GetProductByCategoryController = async (req, res) => {
 };
 
 //get product by category and subcategory
-export const GetProductByCategoryAndSubcategoryController = async (req,res) => {
+export const GetProductByCategoryAndSubcategoryController = async (
+  req,
+  res
+) => {
   try {
     const { categoryId, subcategoryId, page, limit } = req.body;
     if (!categoryId || !subcategoryId) {
@@ -164,13 +167,13 @@ export const GetProductByCategoryAndSubcategoryController = async (req,res) => {
     }
 
     const query = {
-      category: { $in : categoryId },
-      subCategory: { $in : subcategoryId },
+      category: { $in: categoryId },
+      subCategory: { $in: subcategoryId },
     };
 
     const skip = (page - 1) * limit;
 
-    const [ data, dataCount ]  = await Promise.all([
+    const [data, dataCount] = await Promise.all([
       productModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
       productModel.countDocuments(query),
     ]);
@@ -185,6 +188,42 @@ export const GetProductByCategoryAndSubcategoryController = async (req,res) => {
       page: page,
       totalCount: dataCount,
     });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      success: false,
+      error: true,
+    });
+  }
+};
+
+//getp product details
+export const GetProductDetailsController = async (req, res) => {
+  try {
+    const { productId } = req.body;
+    if (!productId) {
+      return res.status(400).json({
+        message: "Product id is required",
+        success: false,
+        error: true,
+      });
+    }
+
+    const product = await productModel.findOne({ _id: productId });
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found",
+        success: false,
+        error: true,
+      });
+    }
+
+    return res.json({
+      message: "Product details",
+      success: true,
+      error: false,
+      data: product,
+    })
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
