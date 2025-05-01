@@ -312,7 +312,7 @@ export const DeleteProductControler = async (req, res) => {
 //search product
 export const SearchProductController = async (req, res) => {
   try {
-    const { search, page, limit } = req.body;
+    let { search, page, limit } = req.body;
 
     if (!page) {
       page = 1;
@@ -349,8 +349,9 @@ export const SearchProductController = async (req, res) => {
       success : true,
       data ,
       dataCount,
-      page,
-      limit
+      totalpage : Math.ceil(dataCount/limit),
+      page : page,
+      limit,
     })
   } catch (error) {
     return res.status(500).json({
