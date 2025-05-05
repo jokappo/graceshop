@@ -21,20 +21,23 @@ export const addToCartItemController = async (req, res) => {
       quantity: 1,
     });
 
-    const save = await cartItem.save();
-    // Check if the product is already in the cart
+    
+    // Check if the product is already in the cart and encrise quantity
     const existingCartItem = await cartProductModel.findOne({
       product: productId,
       user: userId,
     });
     if (existingCartItem) {
-      return res.status(400).json({
-        message: "Product already exists in the cart",
-        success: false,
-        error: true,
+      existingCartItem.quantity += 1;
+      await existingCartItem.save();
+      return res.json({
+        success: true,
+        error: false,
+        message: "Product quantity updated in cart",
+        data: existingCartItem,
       });
     }
-
+      const save = await cartItem.save();
 
     const updateCartUser = await UserModel.updateOne(
       { _id: userId },
@@ -52,6 +55,39 @@ export const addToCartItemController = async (req, res) => {
       success: false,
       message: error.message || error,
       error: error.message,
+    });
+  }
+};
+
+//getcartitemcontroller
+export const getCartItemController = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const cartItems = await cartProductModel
+      .find({ user: userId })
+      .populate("product")
+      .populate("user");
+
+    if (!cartItems) {
+      return res.status(404).json({
+        success: false,
+        error: true,
+        message: "No items found in the cart",
+      });
+    }
+
+    return res.json({
+      success: true,
+      error: false,
+      message: "Cart items retrieved successfully",
+      data: cartItems,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || error,
+      error: true,
     });
   }
 };
