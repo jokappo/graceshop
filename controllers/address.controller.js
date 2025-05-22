@@ -108,7 +108,7 @@ export const getAddressController = async (req, res) => {
 export const editAddressController = async (req, res) => {
   try {
     const userId = req.userId;
-    const { _id, address_line, city, state, pincode, country, mobile } =
+    const { _id, address_line, city, state, pincode, country, mobile, status} =
       req.body;
     if (!userId) {
       return res.status(400).json({
@@ -127,6 +127,7 @@ export const editAddressController = async (req, res) => {
         pincode,
         country,
         mobile,
+        status,
       }
     );
 
@@ -142,6 +143,49 @@ export const editAddressController = async (req, res) => {
       error: false,
       message: "Address updated successfully",
       data: update,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || error,
+      error: true,
+    });
+  }
+};
+
+//delete address controller
+export const deleteAddressController = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { _id } = req.body;
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+        error: true,
+      });
+    }
+    const desableAddress = await addressModel.updateOne(
+      {
+        _id: _id,
+        userId: userId,
+      },
+      {
+        status: false,
+      }
+    );
+    if (desableAddress.modifiedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Address not found",
+        error: true,
+      });
+    }
+    return res.json({
+      success: true,
+      error: false,
+      message: "Address desable successfully",
+      data: desableAddress,
     });
   } catch (error) {
     return res.status(500).json({
