@@ -53,6 +53,12 @@ dependencies:
   resend:
     specifier: ^4.0.1
     version: 4.0.1(react-dom@18.3.1)(react@18.3.1)
+  safe-buffer:
+    specifier: ^5.2.1
+    version: 5.2.1
+  stripe:
+    specifier: ^18.1.1
+    version: 18.1.1
   sweetalert2:
     specifier: ^11.17.2
     version: 11.17.2
@@ -1514,6 +1520,18 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       ansi-regex: 6.1.0
+    dev: false
+
+  /stripe@18.1.1:
+    resolution: {integrity: sha512-hlF0ripc2nJrihpsJZQDl3xirS7tpdpS7DlmSNLEDRW8j7Qr215y5DHOI3+aEY/lq6PG8y4GR1RZPtEoIoAs/g==}
+    engines: {node: '>=12.*'}
+    peerDependencies:
+      '@types/node': '>=12.x.x'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+    dependencies:
+      qs: 6.13.0
     dev: false
 
   /supports-color@5.5.0:
