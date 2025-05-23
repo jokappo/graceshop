@@ -28,6 +28,8 @@
     "nodemon": "^3.1.7",
     "path": "^0.12.7",
     "resend": "^4.0.1",
+    "safe-buffer": "^5.2.1",
+    "stripe": "^18.1.1",
     "sweetalert2": "^11.17.2"
   }
 }
