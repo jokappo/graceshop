@@ -37,7 +37,6 @@ const orderSchema = new mongoose.Schema({
         ref : 'address',
     },
 
-
     subTotalAmt : {
         type : Number,
         default : 0
