@@ -6,7 +6,7 @@ import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generateRefreshToken from "../utils/generateRefreshToken.js";
 import uploadImageCloudinary from "../utils/uploadImageCloudinary.js";
 import generateOTP from "../utils/generatedOtp.js";
-import forgotPasswordTemplate from "../utils/forgotpasswordTemplate.js";
+import forgotPasswordTemplate from "../utils/forgotPasswordTemplate.js";
 import jwt from "jsonwebtoken";
 import { now } from "mongoose";
 
